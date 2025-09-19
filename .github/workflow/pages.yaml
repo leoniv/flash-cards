@@ -1,0 +1,65 @@
+name: Build & Deploy (Nix + Vite → GitHub Pages)
+
+on:
+  push:
+    branches: [ main ]        # change if your default branch differs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      # Optional: cache Yarn downloads to speed up CI
+      - name: Restore Yarn cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .yarn/cache
+            ~/.cache/yarn
+            ~/.yarn
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Build with shell.nix
+        run: |
+          nix-shell --pure --run '
+            corepack enable
+            yarn install --immutable
+            yarn build
+          '
+
+      - name: Upload Pages artifact (./public)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
