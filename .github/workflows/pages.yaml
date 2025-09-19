@@ -3,7 +3,8 @@ name: Build & Deploy (Nix + Vite → GitHub Pages)
 on:
   push:
     branches:
-      - main
+      - master
+  workflow_dispatch:
 
 permissions:
   contents: read
