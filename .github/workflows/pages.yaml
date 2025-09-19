@@ -2,7 +2,8 @@ name: Build & Deploy (Nix + Vite → GitHub Pages)
 
 on:
   push:
-    branches: [ main ]        # change if your default branch differs
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
