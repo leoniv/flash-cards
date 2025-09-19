@@ -11,6 +11,8 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
+    alias yarn="corepack yarn"
+    alias pnpm="corepack pnpm"
     echo "Go is ready! Install packages with: go install <package>@latest"
   '';
 }
