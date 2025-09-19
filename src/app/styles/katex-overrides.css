@@ -1,0 +1,7 @@
+.katex {
+  overflow-x: auto;   /* allow horizontal scroll instead of clipping */
+  padding: 0.25rem 0;
+  text-align: left !important;   /* force left instead of center */
+  margin: 1em 0;
+  padding-left: 0;
+}

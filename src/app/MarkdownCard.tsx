@@ -1,6 +1,9 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import rehypeHighlight from "rehype-highlight";
 
 // Utility: build a path that respects Vite's base ("/" in dev, "./" in build)
 function withBase(p: string) {
@@ -68,7 +71,13 @@ export function MarkdownCard({ path = "cards/hello.md", className }: Props) {
         </p>
       )}
       {!loading && !error && content && (
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[
+            [rehypeHighlight, { ignoreMissing: true }],
+            [rehypeKatex, { strict: false }]
+          ]}
+        >{content}</ReactMarkdown>
       )}
     </article>
   );
