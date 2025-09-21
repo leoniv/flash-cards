@@ -2,6 +2,7 @@
   overflow-x: auto;   /* allow horizontal scroll instead of clipping */
   padding: 0.25rem 0;
   text-align: left !important;   /* force left instead of center */
-  margin: 1em 0;
-  padding-left: 0;
+  padding: 0 0 0 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: calc(var(--space-p) * var(--space-scale)) !important;
 }

@@ -2,7 +2,6 @@
 
 let
   isCI = (builtins.getEnv "CI") == "true";
-  isCIs = if isCI then "true" else "false";
 in
 pkgs.mkShell {
   packages = with pkgs; [
@@ -18,7 +17,6 @@ pkgs.mkShell {
   );
 
   shellHook = ''
-    echo isCI = ${isCIs}
   '' + ( if isCI then ''
     export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
     export NIX_SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt

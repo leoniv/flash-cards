@@ -1,0 +1,20 @@
+html {
+  font-size: 14px;
+}
+
+:root {
+  --space-p: 0.5rem;
+  --space-h: 1rem;
+  --space-scale: 0.5;
+}
+
+h1, h2, h3, h4 {
+  padding: 0 0 0 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: calc(var(--space-h) * var(--space-scale)) !important;
+}
+p, code {
+  padding: 0 0 0 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: calc(var(--space-p) * var(--space-scale)) !important;
+}

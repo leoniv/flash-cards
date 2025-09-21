@@ -2,11 +2,17 @@
 
 tag:algorithms tag:coding tag:dp
 
+## Example
+
+### Code
+
 ```go
 func main() {
   fmt.Println("Hello world!")
 }
 ```
+
+### Math
 
 ```math
 \int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}
