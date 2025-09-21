@@ -1,0 +1,150 @@
+:root {
+  /* not pure black; subtle dark navy/graphite */
+  --nav-bg: #111823;
+  --nav-fg: #e6e7e9;
+  --nav-muted: #9aa3ad;
+
+  --nav-w: 260px;      /* sidebar width on desktop */
+  --bar-h: 52px;       /* mobile top bar height */
+  --gap: 12px;
+  --radius: 12px;
+  --border: rgba(255,255,255,0.08);
+}
+
+/* Shell uses CSS grid: rail left on desktop, bar on mobile */
+.app-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr; /* mobile: bar + content */
+  min-height: 100dvh;
+  background: var(--bg, #fff);
+}
+
+/* NAV */
+.nav {
+  background: var(--nav-bg);
+  color: var(--nav-fg);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Top bar row (mobile) */
+.nav__bar {
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: 0 12px;
+}
+
+/* Brand */
+.nav__brand {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+/* Hamburger */
+.nav__menu {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+}
+.nav__menu-line {
+  width: 18px;
+  height: 2px;
+  background: var(--nav-fg);
+  display: block;
+}
+
+/* Next button */
+.nav__next {
+  margin-left: auto;           /* push to right on mobile */
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  color: var(--nav-fg);
+  cursor: pointer;
+}
+
+/* Controls area: collapsed/expanded on mobile */
+.nav__controls {
+  display: none;               /* collapsed by default on mobile */
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+.nav[data-open="true"] .nav__controls {
+  display: block;              /* show when open on mobile */
+}
+.nav__controls-empty {
+  color: var(--nav-muted);
+  font-size: 0.9rem;
+}
+
+/* Main content area */
+.content {
+  padding: 16px;
+}
+
+/* ───────── Desktop layout ───────── */
+@media (min-width: 900px) {
+  .app-shell {
+    grid-template-columns: var(--nav-w) 1fr;  /* left rail + content */
+    grid-template-rows: 1fr;
+  }
+
+  .nav {
+    height: 100dvh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+  }
+
+  /* In the rail, the bar becomes a vertical header block */
+  .nav__bar {
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .nav__menu {
+    display: none;             /* no hamburger on desktop */
+  }
+
+  /* Next button goes to the TOP on desktop */
+  .nav__next {
+    margin: 0;
+    order: -1;                 /* ensure it sits at the top */
+    height: 42px;
+  }
+
+  .nav__brand {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+
+  /* Controls are always visible in the rail */
+  .nav__controls {
+    display: block;
+    padding: 16px;
+  }
+
+  .content {
+    padding: 28px 28px 36px;
+  }
+}

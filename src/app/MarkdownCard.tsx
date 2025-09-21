@@ -55,15 +55,7 @@ export function MarkdownCard({ path = "cards/hello.md", className }: Props) {
   }, [path]);
 
   return (
-    <article
-      className={className}
-      style={{
-        margin: "0 auto",
-        padding: "16px",
-        maxWidth: 720,
-        lineHeight: 1.5,
-      }}
-    >
+    <article className={className}>
       {loading && <p style={{ opacity: 0.7 }}>Loading…</p>}
       {error && (
         <p style={{ color: "crimson" }}>

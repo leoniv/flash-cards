@@ -1,21 +1,23 @@
 import { MarkdownCard } from "./MarkdownCard";
+import { Layout } from "./Layout";
 
 export function App() {
-  return (
-    <main
-      style={{
-        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
-        padding: "8px",
-      }}
-    >
-      <header style={{ padding: "8px 0" }}>
-        <h1 style={{ fontSize: "1.25rem", margin: 0 }}>Flashcards</h1>
-        <p style={{ margin: "4px 0 0", opacity: 0.8 }}>
-          One Markdown card (more navigation soon)
-        </p>
-      </header>
+  const handleNext = () => {
+    // TODO: plug in your card-switching logic
+    // e.g., go to next path from a list
+    console.log("Next clicked");
+  };
 
-      <MarkdownCard path="cards/hello.md" />
-    </main>
+  const Controls = (
+    <div style={{ display: "grid", gap: 10 }}>
+      {/* Put filters/search/etc. here later */}
+      <small style={{ opacity: 0.7 }}>More controls coming…</small>
+    </div>
+  );
+
+  return (
+    <Layout onNext={handleNext} Controls={Controls}>
+        <MarkdownCard path="cards/hello.md" />
+    </Layout>
   );
 }
