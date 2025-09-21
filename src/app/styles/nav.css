@@ -65,8 +65,13 @@
   display: block;
 }
 
+.nav__actions {
+  margin-left: auto;        /* уводим вправо на мобиле */
+  display: flex;
+  gap: 8px;
+}
 /* Next button */
-.nav__next {
+.nav__prev, .nav__next, .nav__rand {
   margin-left: auto;           /* push to right on mobile */
   height: 36px;
   padding: 0 12px;
@@ -77,6 +82,21 @@
   cursor: pointer;
 }
 
+/* Desktop layout tweaks */
+@media (min-width: 900px) {
+  .nav__actions {
+    flex-direction: column;
+    margin-left: 0;
+    gap: 10px;
+  }
+
+  .nav__prev,
+  .nav__next,
+  .nav__rand {
+    width: 100%;
+    height: 42px;
+  }
+}
 /* Controls area: collapsed/expanded on mobile */
 .nav__controls {
   display: none;               /* collapsed by default on mobile */

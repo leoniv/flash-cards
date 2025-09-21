@@ -3,11 +3,13 @@ import "./styles/nav.css";
 
 type LayoutProps = {
   onNext?: () => void;
+  onPrev?: () => void;
+  onRand?: () => void;
   Controls?: React.ReactNode;  // put any future controls here
   children: React.ReactNode;   // markdown/content
 };
 
-export function Layout({ onNext, Controls, children }: LayoutProps) {
+export function Layout({ onNext, onPrev, onRand, Controls, children }: LayoutProps) {
   const [open, setOpen] = React.useState(false);
 
   // Close the mobile drawer if viewport becomes desktop
@@ -37,9 +39,16 @@ export function Layout({ onNext, Controls, children }: LayoutProps) {
 
           <div className="nav__brand">Flashcards</div>
 
-          <button className="nav__next" onClick={onNext}>
-            Next →
-          </button>
+          {/* Prev & Next controls */}
+          <div className="nav__actions">
+            <button className="nav__prev" onClick={onPrev}>
+              ← Prev
+            </button>
+           <button className="nav__rand" onClick={onRand}>🎲 Rand</button>
+            <button className="nav__next" onClick={onNext}>
+              Next →
+            </button>
+          </div>
         </div>
 
         {/* Controls area:

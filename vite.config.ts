@@ -4,7 +4,7 @@ import FullReload from "vite-plugin-full-reload";
 export default defineConfig({
   plugins: [
     react(),
-    FullReload(["static/cards/**/*.md"]),
+    FullReload(["static/cards/**/*"]),
   ],
   publicDir: "static",
   build: {

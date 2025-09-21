@@ -4,22 +4,16 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
-
-// Utility: build a path that respects Vite's base ("/" in dev, "./" in build)
-function withBase(p: string) {
-  const base = import.meta.env.BASE_URL ?? "/";
-  // ensure exactly one slash between base and path
-  return (base.endsWith("/") ? base : base + "/") + p.replace(/^\/+/, "");
-}
+import { withBase } from "./utils/url";
 
 type Props = {
   /** Path under static/ (copied to site root), e.g. "cards/hello.md" */
-  path?: string;
+  path: string;
   /** Optional className for outer container */
   className?: string;
 };
 
-export function MarkdownCard({ path = "cards/hello.md", className }: Props) {
+export function MarkdownCard({ path, className }: Props) {
   const [content, setContent] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);

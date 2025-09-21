@@ -1,23 +1,24 @@
 import { MarkdownCard } from "./MarkdownCard";
 import { Layout } from "./Layout";
+import { useCardNav } from "./hooks/useCardNav";
 
 export function App() {
-  const handleNext = () => {
-    // TODO: plug in your card-switching logic
-    // e.g., go to next path from a list
-    console.log("Next clicked");
-  };
+  const { ready, currentPath, next, prev, rand /*, list, error */ } = useCardNav();
 
   const Controls = (
     <div style={{ display: "grid", gap: 10 }}>
-      {/* Put filters/search/etc. here later */}
+      {/* TODO: Put filters/search/etc. here later */}
       <small style={{ opacity: 0.7 }}>More controls coming…</small>
     </div>
   );
 
   return (
-    <Layout onNext={handleNext} Controls={Controls}>
-        <MarkdownCard path="cards/hello.md" />
+    <Layout onNext={next} onPrev={prev} onRand={rand} Controls={Controls}>
+        {!ready ? (
+          <p style={{ opacity: 0.7 }}>Loading cards…</p>
+        ) : (
+          <MarkdownCard path={currentPath} />
+        )}
     </Layout>
   );
 }
