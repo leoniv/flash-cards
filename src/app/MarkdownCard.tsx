@@ -5,6 +5,8 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import { withBase } from "./utils/url";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 
 type Props = {
   /** Path under static/ (copied to site root), e.g. "cards/hello.md" */
@@ -13,6 +15,15 @@ type Props = {
   className?: string;
 };
 
+const schema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames || []), "details", "summary"],
+  attributes: {
+    ...(defaultSchema.attributes || {}),
+    details: [["open"]], // allow <details open>
+    summary: []
+  }
+};
 export function MarkdownCard({ path, className }: Props) {
   const [content, setContent] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -60,6 +71,9 @@ export function MarkdownCard({ path, className }: Props) {
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[
+            rehypeRaw,                         // parse raw HTML in MD
+            [rehypeSanitize, schema],          // sanitize it safely
+            [rehypeKatex, { strict: false }],  // math
             [rehypeHighlight, { ignoreMissing: true }],
             [rehypeKatex, { strict: false }]
           ]}
