@@ -24,24 +24,44 @@ export default defineConfig({
 });
 
 function ManifestPlugin(): PluginOption {
+  async function generate(plugin: PluginOption) {
+    const cardDir = path.resolve(__dirname, "static/cards");
+    const pattern = path.join(cardDir, "**/*.md").replace(/\\/g, "/");
+    const files = await fg(pattern, { cwd: __dirname });
+
+    files.forEach(f => plugin.info(f))
+    const cards = files
+      .map(f => f.replace(__dirname + "/", "").replace(/^static\//, ""))
+      .map(card => {
+        const id = card.replace(/^cards\//, "").replace(/\.md$/, "")
+        const decks = id.split("/")
+        const deck = decks.length > 1 ? decks[0] : "common"
+
+        return {
+          id,
+          deck,
+          path: card
+        }
+      });
+
+    const manifest = { cards };
+    const outPath = path.resolve(__dirname, "static/cards-manifest.json");
+
+    fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2), "utf-8");
+    plugin.info(`Generated manifests with ${cards.length} cards`);
+  }
   return {
     name: "cards-manifest",
-    apply: "build",  // only run in build
-    async buildStart() {
-      const cardDir = path.resolve(__dirname, "static/cards");
-      const pattern = path.join(cardDir, "**/*.md").replace(/\\/g, "/");
-      const files = await fg(pattern, { cwd: __dirname });
-
-      files.forEach(f => this.info(f))
-      // strip leading "static/" so paths match runtime URLs
-      const cards = files.map(f => f.replace(__dirname + "/", "").replace(/^static\//, ""));
-      cards.forEach(f => this.info(f))
-
-      const manifest = { cards };
-      const outPath = path.resolve(__dirname, "static/cards-manifest.json");
-
-      fs.writeFileSync(outPath, JSON.stringify(manifest, null, 2), "utf-8");
-      this.info(`Generated manifests with ${cards.length} cards`);
+    async buildStart() { await generate(this) },
+    configureServer(server) {
+      const run = () => generate(this).then(() =>
+        server.ws.send({ type: "full-reload" })
+      );
+      run();
+      server.watcher.add("static/cards/**/*.md");
+      server.watcher.on("add", (f) => /static\/cards\/.*\.md$/.test(f) && run());
+      server.watcher.on("unlink", (f) => /static\/cards\/.*\.md$/.test(f) && run());
+      server.watcher.on("change", (f) => /static\/cards\/.*\.md$/.test(f) && run());
     },
   };
 }

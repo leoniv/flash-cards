@@ -1,44 +1,33 @@
-export interface Navigator {
-  readonly list: string[];
-  readonly index: number;
-  current(): string;
-  next(): string;
-  prev(): string;
-  setByPath(path: string): string; // sets index to this path if present
-  rand(): string;
+export interface Navigator<T> {
+  list: T[];
+  index: number;
+  current(): T;
+  next(): T;
+  prev(): T;
+  setBy(pred: (t: T) => boolean): T; // jump by predicate (e.g., id/path)
+  rand(): T;
 }
 
-export function createNavigator(list: string[], startPath?: string): Navigator {
-  if (!Array.isArray(list) || list.length === 0) {
-    throw new Error("Navigator requires a non-empty list");
-  }
+export function createNavigator<T>(list: T[], start?: (t: T) => boolean): Navigator<T> {
+  if (!Array.isArray(list) || list.length === 0) throw new Error("Navigator requires a non-empty list");
 
   let idx = 0;
-  if (startPath) {
-    const found = list.indexOf(startPath);
-    if (found >= 0) idx = found;
+  if (start) {
+    const i = list.findIndex(start);
+    if (i >= 0) idx = i;
   }
 
-  const nav: Navigator = {
+  return {
     get list() { return list; },
     get index() { return idx; },
     current() { return list[idx]; },
     next() { idx = (idx + 1) % list.length; return list[idx]; },
     prev() { idx = (idx - 1 + list.length) % list.length; return list[idx]; },
-    setByPath(path: string) {
-      const i = list.indexOf(path);
-      if (i >= 0) idx = i;
-      return list[idx];
-    },
+    setBy(pred) { const i = list.findIndex(pred); if (i >= 0) idx = i; return list[idx]; },
     rand() {
       if (list.length <= 1) return list[idx];
-      let r: number;
-      do {
-        r = Math.floor(Math.random() * list.length);
-      } while (r === idx);       // avoid repeating same card
-      idx = r;
-      return list[idx];
-    }
+      let r; do { r = Math.floor(Math.random() * list.length); } while (r === idx);
+      idx = r; return list[idx];
+    },
   };
-  return nav;
 }
