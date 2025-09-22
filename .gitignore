@@ -16,3 +16,6 @@ node_modules
 #!.yarn/cache
 .pnp.*
 public/
+static/cards-manifest.json
+*.tsbuildinfo
+*.js
