@@ -114,7 +114,7 @@
 /* Main content area */
 .content {
   padding: 16px;
-  min-width: 0; /* <-- critical for grid/flex children */
+  min-width: 0;
 }
 
 /* ───────── Desktop layout ───────── */
