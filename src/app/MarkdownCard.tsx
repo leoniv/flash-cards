@@ -7,6 +7,7 @@ import rehypeHighlight from "rehype-highlight";
 import { withBase } from "./utils/url";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import { CardRef } from "./types";
 
 function observeDetails(root: HTMLElement, onOpen: () => void) {
   const toggle = (e: Event) => {
@@ -31,6 +32,7 @@ type Props = {
   path: string;
   className?: string;
   onAnyDetailsOpen: () => void;
+  onNavigate: (s: CardRef) => void;
 };
 
 const schema = {
@@ -42,7 +44,7 @@ const schema = {
     summary: []
   }
 };
-export function MarkdownCard({ path, className, onAnyDetailsOpen }: Props) {
+export function MarkdownCard({ path, className, onAnyDetailsOpen, onNavigate }: Props) {
   const [content, setContent] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -102,6 +104,33 @@ export function MarkdownCard({ path, className, onAnyDetailsOpen }: Props) {
             [rehypeHighlight, { ignoreMissing: true }],
             [rehypeKatex, { strict: false }]
           ]}
+
+          components={{
+            a({ href, children, ...props }) {
+              if (!href) return <a {...props}>{children}</a>;
+              // detect relative link to another .md under cards/
+              if (href.endsWith(".md") && !href.startsWith("http")) {
+                return (
+                  <a
+                    href={href}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const cardref: CardRef = {
+                         id: href.replace(/\.md$/, ""),
+                         path: href.replace(/^\.?\/*/, "cards/"),
+                         deck: href.split("/")[0]
+                      };
+                      onNavigate?.(cardref);
+                    }}
+                  >
+                    {children}
+                  </a>
+                );
+              }
+              // default: external link
+              return <a href={href} target="_blank" rel="noreferrer">{children}</a>;
+            }
+          }}
         >{content}</ReactMarkdown>
       )}
     </article>

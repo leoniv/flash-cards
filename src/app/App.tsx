@@ -8,7 +8,7 @@ export function App() {
     setDeck, next, prev, rand, progress,
     markRevealedById, doResetProgress,
     setOnlyUnseen, onlyUnseen,
-    ALL
+    onNavigate, ALL
   } = useCardNav();
 
   const totalAll = ready ? Object.values(deckCounts).reduce((a, b) => a + b, 0) : 0;
@@ -75,7 +75,11 @@ export function App() {
       {!ready ? (
         <p style={{ opacity: 0.7 }}>Loading cards…</p>
       ) : (
-        <MarkdownCard path={current.path} onAnyDetailsOpen={() => markRevealedById(current.id)} />
+        <MarkdownCard
+          path={current.path}
+          onAnyDetailsOpen={() => markRevealedById(current.id)}
+          onNavigate={onNavigate}
+        />
       )}
     </Layout>
   );

@@ -166,5 +166,18 @@ export function useCardNav(startId?: string) {
     setState((s) => (!s.ready ? s : { ...s, progress: markRevealed(s.progress, id) }));
   }, []);
 
-  return { ...state, setDeck, next, prev, rand, markRevealedById, doResetProgress, setOnlyUnseen, ALL } as const;
+  const onNavigate = React.useCallback((ref: CardRef) => {
+    setDeck(ALL);
+    setState((s) => {
+      if (!s.ready) return s;
+      s.nav.setBy(x => x.id == ref.id);
+      const item = s.nav.current();
+      console.debug("nav.list: " + JSON.stringify(s.nav.list))
+      console.debug("navigated: " + JSON.stringify(ref))
+      console.debug("current: " + JSON.stringify(item))
+      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+    });
+  }, []);
+
+  return { ...state, setDeck, next, prev, rand, markRevealedById, doResetProgress, setOnlyUnseen, onNavigate, ALL } as const;
 }
