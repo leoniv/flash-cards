@@ -4,18 +4,21 @@
   --nav-fg: #e6e7e9;
   --nav-muted: #9aa3ad;
 
-  --nav-w: 260px;      /* sidebar width on desktop */
-  --bar-h: 52px;       /* mobile top bar height */
+  --nav-w: 260px;
+  /* sidebar width on desktop */
+  --bar-h: 52px;
+  /* mobile top bar height */
   --gap: 12px;
   --radius: 12px;
-  --border: rgba(255,255,255,0.08);
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 /* Shell uses CSS grid: rail left on desktop, bar on mobile */
 .app-shell {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr; /* mobile: bar + content */
+  grid-template-rows: auto 1fr;
+  /* mobile: bar + content */
   min-height: 100dvh;
   background: var(--bg, #fff);
 }
@@ -55,9 +58,10 @@
   height: 36px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
 }
+
 .nav__menu-line {
   width: 18px;
   height: 2px;
@@ -66,18 +70,23 @@
 }
 
 .nav__actions {
-  margin-left: auto;        /* уводим вправо на мобиле */
+  margin-left: auto;
+  /* уводим вправо на мобиле */
   display: flex;
   gap: 8px;
 }
+
 /* Next button */
-.nav__prev, .nav__next, .nav__rand {
-  margin-left: auto;           /* push to right on mobile */
+.nav__prev,
+.nav__next,
+.nav__rand {
+  margin-left: auto;
+  /* push to right on mobile */
   height: 36px;
   padding: 0 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--nav-fg);
   cursor: pointer;
 }
@@ -97,15 +106,20 @@
     height: 42px;
   }
 }
+
 /* Controls area: collapsed/expanded on mobile */
 .nav__controls {
-  display: none;               /* collapsed by default on mobile */
+  display: none;
+  /* collapsed by default on mobile */
   padding: 12px;
   border-top: 1px solid var(--border);
 }
+
 .nav[data-open="true"] .nav__controls {
-  display: block;              /* show when open on mobile */
+  display: block;
+  /* show when open on mobile */
 }
+
 .nav__controls-empty {
   color: var(--nav-muted);
   font-size: 0.9rem;
@@ -117,10 +131,29 @@
   min-width: 0;
 }
 
+@media (max-width: 900px) and (orientation: landscape) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .nav__menu {
+    display: block;
+    /* show button */
+    position: absolute;
+    top: .5rem;
+    left: .5rem;
+  }
+}
+
 /* ───────── Desktop layout ───────── */
 @media (min-width: 900px) {
   .app-shell {
-    grid-template-columns: var(--nav-w) 1fr;  /* left rail + content */
+    grid-template-columns: var(--nav-w) 1fr;
+    /* left rail + content */
     grid-template-rows: 1fr;
   }
 
@@ -144,13 +177,15 @@
   }
 
   .nav__menu {
-    display: none;             /* no hamburger on desktop */
+    display: none;
+    /* no hamburger on desktop */
   }
 
   /* Next button goes to the TOP on desktop */
   .nav__next {
     margin: 0;
-    order: -1;                 /* ensure it sits at the top */
+    order: -1;
+    /* ensure it sits at the top */
     height: 42px;
   }
 
