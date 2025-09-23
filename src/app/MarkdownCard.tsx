@@ -8,11 +8,29 @@ import { withBase } from "./utils/url";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 
+function observeDetails(root: HTMLElement, onOpen: () => void) {
+  const toggle = (e: Event) => {
+    const t = e.target as HTMLDetailsElement;
+    if (t?.tagName === "details" && t.open) onOpen();
+  };
+
+  root.addEventListener("toggle", toggle, true);
+  const mo = new MutationObserver((muts) => {
+    for (const m of muts) {
+      if (m.type === "attributes" && (m.target as Element).tagName === "DETAILS") {
+        const d = m.target as HTMLDetailsElement;
+        if (d.open) onOpen();
+      }
+    }
+  });
+  mo.observe(root, { subtree: true, attributes: true, attributeFilter: ["open"] });
+  return () => { root.removeEventListener("toggle", toggle, true); mo.disconnect(); };
+}
+
 type Props = {
-  /** Path under static/ (copied to site root), e.g. "cards/hello.md" */
   path: string;
-  /** Optional className for outer container */
   className?: string;
+  onAnyDetailsOpen: () => void;
 };
 
 const schema = {
@@ -24,7 +42,7 @@ const schema = {
     summary: []
   }
 };
-export function MarkdownCard({ path, className }: Props) {
+export function MarkdownCard({ path, className, onAnyDetailsOpen }: Props) {
   const [content, setContent] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -59,8 +77,15 @@ export function MarkdownCard({ path, className }: Props) {
     };
   }, [path]);
 
+
+  const ref = React.useRef<HTMLElement | null>(null);
+  React.useEffect(() => {
+    if (!ref.current || !onAnyDetailsOpen) return;
+    return observeDetails(ref.current, onAnyDetailsOpen);
+  }, [onAnyDetailsOpen, path]);
+
   return (
-    <article className={className}>
+    <article ref={ref} className={className}>
       {loading && <p style={{ opacity: 0.7 }}>Loading…</p>}
       {error && (
         <p style={{ color: "crimson" }}>

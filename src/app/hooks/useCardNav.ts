@@ -1,18 +1,22 @@
 // src/app/hooks/useCardNav.ts
 import * as React from "react";
-import type { Manifest, CardRef } from "../types";
+import type { Manifest, CardRef, DeckCounts } from "../types";
 import { createNavigator, Navigator } from "../logic/navigator";
+import { loadProgress, markViewed, markRevealed, type ProgressStore } from "../logic/progress";
 import { withBase } from "../utils/url";
 
 const ALL = "__all__";
 
 type ReadyState = {
   ready: true;
-  deck: string;                 // current deck filter, ALL by default
-  decks: string[];              // e.g., ["algorithms","sql"]
-  list: CardRef[];              // filtered list (by deck)
+  deck: string;
+  decks: string[];
+  deckCounts: DeckCounts;
+  allCards: CardRef[];      // unfiltered
+  list: CardRef[];          // filtered by deck
   nav: Navigator<CardRef>;
   current: CardRef;
+  progress: ProgressStore;
 };
 
 type State =
@@ -32,44 +36,39 @@ export function useCardNav(startId?: string) {
         const data: Manifest = await res.json();
         if (!data.cards?.length) throw new Error("Empty manifest");
 
-        // compute decks
-        const decks = Array.from(new Set(data.cards.map(c => c.deck))).sort();
+        const deckCounts: DeckCounts = {};
+        for (const c of data.cards) deckCounts[c.deck] = (deckCounts[c.deck] ?? 0) + 1;
 
-        // start list = ALL
-        const list = data.cards.slice();
+        const decks = Object.keys(deckCounts).sort();
 
         const nav = createNavigator<CardRef>(
-          list,
+          data.cards,
           startId ? (c) => c.id === startId : undefined
         );
+
+        const progress = loadProgress();
+        const current = nav.current();
+
 
         if (!cancelled) {
           setState({
             ready: true,
             deck: ALL,
             decks,
-            list,
+            deckCounts,
+            allCards: data.cards,
+            list: data.cards,
             nav,
-            current: nav.current(),
+            current,
+            progress: markViewed(progress, current.id), // mark first view
           });
         }
       } catch (e: any) {
-        console.error(e)
         if (!cancelled) setState({ ready: false, error: e?.message ?? "Load failed" });
       }
     })();
     return () => { cancelled = true; };
   }, [startId]);
-
-  const applyDeck = React.useCallback((deck: string) => {
-    setState(s => {
-      if (!s.ready) return s;
-      const full = s.nav.list; // original list is not stored separately; keep a copy:
-      // Better: store unfiltered separately. Quick fix: reconstruct from current and decks is insufficient.
-      // We'll stash unfiltered in a ref:
-      return s; // placeholder replaced below
-    });
-  }, []);
 
   // keep unfiltered list in a ref to rebuild filters
   const unfilteredRef = React.useRef<CardRef[] | null>(null);
@@ -77,31 +76,45 @@ export function useCardNav(startId?: string) {
     if (state.ready) unfilteredRef.current = state.nav.list.slice();
   }, [state.ready]);
 
+
+  // change deck
   const setDeck = React.useCallback((deck: string) => {
-    setState(s => {
+    setState((s) => {
       if (!s.ready) return s;
-      const all = unfilteredRef.current ?? s.nav.list;
-      const filtered = deck === ALL ? all : all.filter(c => c.deck === deck);
+      const filtered = deck === ALL ? s.allCards : s.allCards.filter((c) => c.deck === deck);
       const nav = createNavigator<CardRef>(filtered, (c) => c.id === s.current.id);
-      return { ...s, deck, list: filtered, nav, current: nav.current() };
+      const current = nav.current();
+      return { ...s, deck, list: filtered, nav, current, progress: markViewed(s.progress, current.id) };
     });
   }, []);
 
+  // navigation helpers (make sure to mark viewed)
   const next = React.useCallback(() => {
-    setState(s => !s.ready ? s : ({ ...s, current: s.nav.next() }));
+    setState((s) => {
+      if (!s.ready) return s;
+      const item = s.nav.next();
+      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+    });
   }, []);
   const prev = React.useCallback(() => {
-    setState(s => !s.ready ? s : ({ ...s, current: s.nav.prev() }));
+    setState((s) => {
+      if (!s.ready) return s;
+      const item = s.nav.prev();
+      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+    });
   }, []);
   const rand = React.useCallback(() => {
-    setState(s => !s.ready ? s : ({ ...s, current: s.nav.rand() }));
+    setState((s) => {
+      if (!s.ready) return s;
+      const item = s.nav.rand();
+      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+    });
   }, []);
 
-  return {
-    ...state,
-    setDeck,
-    decks: state.ready ? state.decks : [],
-    deck: state.ready ? state.deck : ALL,
-    next, prev, rand,
-  } as const;
+  // mark revealed (call this when any <details> opens)
+  const markRevealedById = React.useCallback((id: string) => {
+    setState((s) => (!s.ready ? s : { ...s, progress: markRevealed(s.progress, id) }));
+  }, []);
+
+  return { ...state, setDeck, next, prev, rand, markRevealedById, ALL } as const;
 }
