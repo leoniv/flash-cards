@@ -9,8 +9,8 @@ export function loadProgress(): ProgressStore {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return { viewed: {}, revealed: {} };
-    const json = JSON.parse(raw);
-    return { viewed: json.viewed ?? {}, revealed: json.revealed ?? {} };
+    const j = JSON.parse(raw);
+    return { viewed: j.viewed ?? {}, revealed: j.revealed ?? {} };
   } catch {
     return { viewed: {}, revealed: {} };
   }
@@ -32,4 +32,10 @@ export function markRevealed(p: ProgressStore, id: string): ProgressStore {
   const next = { ...p, revealed: { ...p.revealed, [id]: true } };
   saveProgress(next);
   return next;
+}
+
+export function resetProgress(): ProgressStore {
+  const fresh = { viewed: {}, revealed: {} };
+  saveProgress(fresh);
+  return fresh;
 }
