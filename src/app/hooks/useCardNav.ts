@@ -2,8 +2,8 @@
 import * as React from "react";
 import type { Manifest, CardRef, DeckCounts } from "../types";
 import { createNavigator, Navigator } from "../logic/navigator";
-import { loadProgress, markViewed, markRevealed, resetProgress, type ProgressStore } from "../logic/progress";
-import { withBase } from "../utils/url";
+import { withBase, parseCardPath } from "../utils/url";
+import { log } from "console";
 
 const ALL = "__all__";
 
@@ -11,13 +11,11 @@ type ReadyState = {
   ready: true;
   deck: string;
   decks: string[];
-  onlyUnseen: boolean;
   deckCounts: DeckCounts;
   allCards: CardRef[];      // unfiltered
   list: CardRef[];          // filtered by deck
   nav: Navigator<CardRef>;
   current: CardRef;
-  progress: ProgressStore;
 };
 
 type State =
@@ -26,12 +24,9 @@ type State =
 
 function filterCards(
   all: CardRef[],
-  deck: string,
-  onlyUnseen: boolean,
-  progress: ProgressStore
+  deck: string
 ): CardRef[] {
   let base = deck === ALL ? all : all.filter(c => c.deck === deck);
-  if (onlyUnseen) base = base.filter(c => !progress.viewed[c.id]);
   return base;
 }
 
@@ -52,9 +47,7 @@ export function useCardNav(startId?: string) {
         for (const c of data.cards) deckCounts[c.deck] = (deckCounts[c.deck] ?? 0) + 1;
 
         const decks = Object.keys(deckCounts).sort();
-        const progress = loadProgress();
-        const onlyUnseen = false;
-        const filtered = filterCards(data.cards, ALL, onlyUnseen, progress);
+        const filtered = filterCards(data.cards, ALL);
 
         const nav = createNavigator<CardRef>(
           filtered.length ? filtered : data.cards,
@@ -69,13 +62,11 @@ export function useCardNav(startId?: string) {
             ready: true,
             deck: ALL,
             decks,
-            onlyUnseen,
             deckCounts,
             allCards: data.cards,
             list: data.cards,
             nav,
             current,
-            progress: markViewed(progress, current.id), // mark first view
           });
         }
       } catch (e: any) {
@@ -84,18 +75,6 @@ export function useCardNav(startId?: string) {
     })();
     return () => { cancelled = true; };
   }, [startId]);
-
-  // helpers to rebuild navigator when filters/progress change
-  function rebuild(s: ReadyState): ReadyState {
-    const list = filterCards(s.allCards, s.deck, s.onlyUnseen, s.progress);
-    if (list.length === 0) {
-      // nothing left under current filter; keep current, empty list
-      return { ...s, list, nav: s.nav, current: s.current };
-    }
-    const sameId = s.current.id;
-    const nav = createNavigator<CardRef>(list, c => c.id === sameId);
-    return { ...s, list, nav, current: nav.current() };
-  }
 
   // keep unfiltered list in a ref to rebuild filters
   const unfilteredRef = React.useRef<CardRef[] | null>(null);
@@ -111,30 +90,7 @@ export function useCardNav(startId?: string) {
       const filtered = deck === ALL ? s.allCards : s.allCards.filter((c) => c.deck === deck);
       const nav = createNavigator<CardRef>(filtered, (c) => c.id === s.current.id);
       const current = nav.current();
-      return { ...s, deck, list: filtered, nav, current, progress: markViewed(s.progress, current.id) };
-    });
-  }, []);
-
- const setOnlyUnseen = React.useCallback((onlyUnseen: boolean) => {
-    setState(s => {
-      if (!s.ready) return s;
-      const next = rebuild({ ...s, onlyUnseen });
-
-      // If turning ON hides the current (already viewed), jump to first available.
-      if (onlyUnseen && next.list.length) {
-        const nav = createNavigator<CardRef>(next.list);
-        return { ...next, nav, current: nav.current() };
-      }
-      return next;
-    });
-  }, []);
-
-  const doResetProgress = React.useCallback(() => {
-    setState(s => {
-      if (!s.ready) return s;
-      const progress = resetProgress();
-      const rebuilt = rebuild({ ...s, progress });
-      return rebuilt;
+      return { ...s, deck, list: filtered, nav, current };
     });
   }, []);
 
@@ -143,41 +99,43 @@ export function useCardNav(startId?: string) {
     setState((s) => {
       if (!s.ready) return s;
       const item = s.nav.next();
-      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+      return { ...s, current: item };
     });
   }, []);
   const prev = React.useCallback(() => {
     setState((s) => {
       if (!s.ready) return s;
       const item = s.nav.prev();
-      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+      return { ...s, current: item };
     });
   }, []);
   const rand = React.useCallback(() => {
     setState((s) => {
       if (!s.ready) return s;
       const item = s.nav.rand();
-      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+      return { ...s, current: item };
     });
   }, []);
 
-  // mark revealed (call this when any <details> opens)
-  const markRevealedById = React.useCallback((id: string) => {
-    setState((s) => (!s.ready ? s : { ...s, progress: markRevealed(s.progress, id) }));
-  }, []);
-
-  const onNavigate = React.useCallback((ref: CardRef) => {
-    setDeck(ALL);
+  const onNavigate = React.useCallback((href: string) => {
     setState((s) => {
-      if (!s.ready) return s;
-      s.nav.setBy(x => x.id == ref.id);
-      const item = s.nav.current();
-      console.debug("nav.list: " + JSON.stringify(s.nav.list))
-      console.debug("navigated: " + JSON.stringify(ref))
-      console.debug("current: " + JSON.stringify(item))
-      return { ...s, current: item, progress: markViewed(s.progress, item.id) };
+      const ref = parseCardPath(href);
+      if (!s.ready) return s
+      const idx = s.allCards.findIndex(x => x.id == ref.id)
+      if (idx >= 0) {
+        const filtered = s.allCards.filter((c) => c.deck === s.allCards[idx].deck);
+        const nav = createNavigator<CardRef>(filtered, (c) => c.id === s.current.id);
+        const item = nav.setBy(
+          x => x.id == ref.id,
+          () => console.error(`Card not found, id: ${ref.id}, path: ${ref.path}.`)
+        );
+        return { ...s, nav, deck: item.deck, current: item };
+      } else {
+        console.error(`Card not found, id: ${ref.id}, path: ${ref.path}.`)
+        return s
+      }
     });
   }, []);
 
-  return { ...state, setDeck, next, prev, rand, markRevealedById, doResetProgress, setOnlyUnseen, onNavigate, ALL } as const;
+  return { ...state, setDeck, next, prev, rand, onNavigate, ALL } as const;
 }

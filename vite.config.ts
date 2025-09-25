@@ -31,6 +31,7 @@ function ManifestPlugin(): PluginOption {
 
     files.forEach(f => plugin.info(f))
     const cards = files
+      // TODO: replse it with util parseCardPath
       .map(f => f.replace(__dirname + "/", "").replace(/^static\//, ""))
       .map(card => {
         const id = card.replace(/^cards\//, "").replace(/\.md$/, "")

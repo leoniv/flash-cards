@@ -12,7 +12,7 @@ A[r] ... A[p-1] <= A[p] < A[p + 1] ... A[r]
 Then doing the same recursively whit left and right parts until `l < r`
 
 Here are two `partition` procedure:
-- [hoare](sorting/hoare-partition.md)
+- [hoare](./static/sorting/hoare-partition.md)
 - [lomuto](sorting/lomuto-partition.md)
 
 

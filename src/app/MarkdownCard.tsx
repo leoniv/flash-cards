@@ -9,30 +9,10 @@ import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { CardRef } from "./types";
 
-function observeDetails(root: HTMLElement, onOpen: () => void) {
-  const toggle = (e: Event) => {
-    const t = e.target as HTMLDetailsElement;
-    if (t?.tagName === "details" && t.open) onOpen();
-  };
-
-  root.addEventListener("toggle", toggle, true);
-  const mo = new MutationObserver((muts) => {
-    for (const m of muts) {
-      if (m.type === "attributes" && (m.target as Element).tagName === "DETAILS") {
-        const d = m.target as HTMLDetailsElement;
-        if (d.open) onOpen();
-      }
-    }
-  });
-  mo.observe(root, { subtree: true, attributes: true, attributeFilter: ["open"] });
-  return () => { root.removeEventListener("toggle", toggle, true); mo.disconnect(); };
-}
-
 type Props = {
   path: string;
   className?: string;
-  onAnyDetailsOpen: () => void;
-  onNavigate: (s: CardRef) => void;
+  onNavigate: (s: string) => void;
 };
 
 const schema = {
@@ -44,7 +24,7 @@ const schema = {
     summary: []
   }
 };
-export function MarkdownCard({ path, className, onAnyDetailsOpen, onNavigate }: Props) {
+export function MarkdownCard({ path, className, onNavigate }: Props) {
   const [content, setContent] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -79,15 +59,8 @@ export function MarkdownCard({ path, className, onAnyDetailsOpen, onNavigate }: 
     };
   }, [path]);
 
-
-  const ref = React.useRef<HTMLElement | null>(null);
-  React.useEffect(() => {
-    if (!ref.current || !onAnyDetailsOpen) return;
-    return observeDetails(ref.current, onAnyDetailsOpen);
-  }, [onAnyDetailsOpen, path]);
-
   return (
-    <article ref={ref} className={className}>
+    <article className={className}>
       {loading && <p style={{ opacity: 0.7 }}>Loading…</p>}
       {error && (
         <p style={{ color: "crimson" }}>
@@ -114,14 +87,10 @@ export function MarkdownCard({ path, className, onAnyDetailsOpen, onNavigate }: 
                   <a
                     href={href}
                     onClick={(e) => {
-                      e.preventDefault();
-                      const cardref: CardRef = {
-                         id: href.replace(/\.md$/, ""),
-                         path: href.replace(/^\.?\/*/, "cards/"),
-                         deck: href.split("/")[0]
-                      };
-                      onNavigate?.(cardref);
-                    }}
+                        e.preventDefault();
+                        onNavigate(href);
+                      }
+                    }
                   >
                     {children}
                   </a>
