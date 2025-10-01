@@ -71,15 +71,10 @@
 
 .nav__actions {
   margin-left: auto;
-  /* уводим вправо на мобиле */
-  display: flex;
   gap: 8px;
 }
 
-/* Next button */
-.nav__prev,
-.nav__next,
-.nav__rand {
+.nav__btn, .grade__btn {
   margin-left: auto;
   /* push to right on mobile */
   height: 36px;

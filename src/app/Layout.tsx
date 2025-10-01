@@ -2,14 +2,12 @@ import React from "react";
 import "./styles/nav.css";
 
 type LayoutProps = {
-  onNext?: () => void;
-  onPrev?: () => void;
-  onRand?: () => void;
   Controls?: React.ReactNode;  // put any future controls here
   children: React.ReactNode;   // markdown/content
+  NavActions?: React.ReactNode;
 };
 
-export function Layout({ onNext, onPrev, onRand, Controls, children }: LayoutProps) {
+export function Layout({ NavActions, Controls, children }: LayoutProps) {
   const [open, setOpen] = React.useState(false);
 
   // Close the mobile drawer if viewport becomes desktop
@@ -37,24 +35,9 @@ export function Layout({ onNext, onPrev, onRand, Controls, children }: LayoutPro
             <span className="nav__menu-line" />
           </button>
 
-          <div className="nav__brand">Flashcards</div>
-
-          {/* Prev & Next controls */}
-          <div className="nav__actions">
-            <button className="nav__prev" onClick={onPrev}>
-              ← Prev
-            </button>
-           <button className="nav__rand" onClick={onRand}>🎲 Rand</button>
-            <button className="nav__next" onClick={onNext}>
-              Next →
-            </button>
-          </div>
+          { NavActions }
         </div>
 
-        {/* Controls area:
-            - mobile: collapses under the bar
-            - desktop: always visible in the left rail
-        */}
         <div className="nav__controls">
           {Controls ?? <div className="nav__controls-empty">No controls yet</div>}
         </div>
