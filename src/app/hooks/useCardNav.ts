@@ -1,6 +1,6 @@
 // src/app/hooks/useCardNav.ts
 import * as React from "react";
-import type { Manifest, CardRef, DeckCounts } from "../types";
+import type { Manifest, CardRef } from "../types";
 import { createNavigator, Navigator } from "../logic/navigator";
 import { withBase, parseCardPath } from "../utils/url";
 import { dueCards } from "../logic/due";
@@ -90,10 +90,11 @@ export function useCardNav(startId?: string) {
   const setDeck = React.useCallback((deck: string) => {
     setState((s) => {
       if (!s.ready) return s;
-      const filtered = deck === ALL ? s.allCards : s.allCards.filter((c) => c.deck === deck);
-      const nav = createNavigator<CardRef>(filtered, (c) => c.id === s.current.id);
+      const base = deck === ALL ? s.allCards : s.allCards.filter((c) => c.deck === deck);
+      const list = s.mode === "due" ? dueCards(base) : base;
+      const nav = createNavigator<CardRef>(list, (c) => c.id === s.current.id);
       const current = nav.current();
-      return { ...s, deck, list: filtered, nav, current };
+      return { ...s, deck, list: list, nav, current };
     });
   }, [makeList]);
 
@@ -149,7 +150,7 @@ export function useCardNav(startId?: string) {
       const ref = parseCardPath(href);
       if (!s.ready) return s
       if (s.mode == "due") {
-        alert("Links navigaton is disabled in 'due' mode")
+        alert("Links navigation is disabled in 'due' mode")
         return s
       }
       const idx = s.allCards.findIndex(x => x.id == ref.id)
